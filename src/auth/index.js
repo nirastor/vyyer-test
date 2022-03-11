@@ -94,6 +94,8 @@ export const useAuth0 = ({
         ...options,
         client_id: options.clientId,
         redirect_uri: redirectUri,
+        // Костыль. Почему-то не тянется из объекта с опциями
+        audience: "https://test-unified.client-api.vyyer.id",
       });
 
       try {
