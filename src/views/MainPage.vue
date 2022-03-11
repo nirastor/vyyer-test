@@ -2,6 +2,7 @@
   <div>
     <UserProfile />
     <hr />
+    <MainLayout />
     <div>Main Content Here</div>
     <div>{{ persons }}</div>
   </div>
@@ -9,10 +10,11 @@
 
 <script>
 import UserProfile from "@/components/UserProfile";
+import MainLayout from "@/components/MainLayout";
 import axios from "axios";
 
 export default {
-  components: { UserProfile },
+  components: { UserProfile, MainLayout },
   data() {
     return {
       someData: null,
