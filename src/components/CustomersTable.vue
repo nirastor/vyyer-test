@@ -1,5 +1,10 @@
 <template>
-  <div v-if="!$auth.loading && $auth.isAuthenticated">
+  <div v-if="loading">
+    <div>Загружаю данные</div>
+    <v-progress-circular />
+  </div>
+
+  <div v-else>
     <div class="search d-flex justify-space-between">
       <v-text-field
         label="Поиск"
@@ -37,7 +42,6 @@
       ></v-pagination>
     </div>
   </div>
-  <div v-else>Авторизуйтесь в меню наверху</div>
 </template>
 
 <script>
@@ -47,6 +51,7 @@ export default {
   data() {
     return {
       token: null,
+      loading: true,
       persons: [],
       page: 1,
       ITEMS_PER_PAGE: 6,
@@ -57,6 +62,7 @@ export default {
           text: "Имя клиента",
           value: "fullName",
           cellClass: "cellAccent",
+          width: 200,
         },
         { text: "Номер лицензии", value: "licenseNumber" },
         { text: "Выдана", value: "issuedAt" },
@@ -65,19 +71,40 @@ export default {
       ],
     };
   },
-  watch: {
-    isAuthorized(to, from) {
-      if (to && !from) {
-        this.updatePersons();
-      }
-    },
+  async created() {
+    this.token = await this.$auth.getTokenSilently();
+
+    if (!this.token) return;
+
+    const url = "https://test-unified.client-api.vyyer.id/api/v2/";
+    axios.defaults.headers.common["Authorization"] = "Bearer " + this.token;
+    axios.defaults.headers.common["Content-Type"] = "application/json";
+    axios.defaults.headers.common["X-User-Id"] = "Auth0User";
+    axios.defaults.headers.common["X-Org-Id"] = "Auth0Org";
+
+    let scans;
+    let persons;
+    try {
+      const res = await axios.get(url + "scans/get");
+      scans = res.data.Data;
+    } catch (e) {
+      console.log(e);
+    }
+
+    const IDs = scans.map((s) => s.IdentityID);
+    const data = { IDs };
+
+    try {
+      const res = await axios.post(url + "identities/get", data);
+      persons = res.data.Data;
+    } catch (e) {
+      console.log(e);
+    }
+
+    this.persons = persons;
+    this.loading = false;
   },
   computed: {
-    isAuthorized() {
-      console.log("here");
-      console.log(this.$auth);
-      return !this.$auth.loading && this.$auth.isAuthorized;
-    },
     pageCount() {
       return Math.ceil(this.persons.length / this.ITEMS_PER_PAGE);
     },
@@ -101,39 +128,7 @@ export default {
     },
   },
   methods: {
-    async updatePersons() {
-      this.token = await this.$auth.getTokenSilently();
-
-      if (!this.token) return;
-
-      const url = "https://test-unified.client-api.vyyer.id/api/v2/";
-      axios.defaults.headers.common["Authorization"] = "Bearer " + this.token;
-      axios.defaults.headers.common["Content-Type"] = "application/json";
-      axios.defaults.headers.common["X-User-Id"] = "Auth0User";
-      axios.defaults.headers.common["X-Org-Id"] = "Auth0Org";
-
-      let scans;
-      let persons;
-      try {
-        const res = await axios.get(url + "scans/get");
-        scans = res.data.Data;
-      } catch (e) {
-        console.log(e);
-      }
-
-      console.log(scans);
-      const IDs = scans.map((s) => s.IdentityID);
-      const data = { IDs };
-
-      try {
-        const res = await axios.post(url + "identities/get", data);
-        persons = res.data.Data;
-      } catch (e) {
-        console.log(e);
-      }
-
-      this.persons = persons;
-    },
+    async updatePersons() {},
     formatDate(date) {
       const ruDateTime = new Intl.DateTimeFormat("ru-RU");
       try {

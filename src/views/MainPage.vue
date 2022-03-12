@@ -2,12 +2,13 @@
   <div class="main d-flex">
     <div class="sidebar"></div>
     <div class="app">
-      <div class="app-menu d-flex">
+      <div class="app-menu d-flex justify-end pr-16">
         <UserProfile />
       </div>
       <div class="app-content d-flex justify-center">
         <div class="card">
-          <CustomersTable />
+          <CustomersTable v-if="!$auth.loading && $auth.isAuthenticated" />
+          <div v-else>Авторизуйтесь в меню наверху</div>
         </div>
       </div>
     </div>

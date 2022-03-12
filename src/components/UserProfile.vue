@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex pa-4">
+  <div class="d-flex pa-4 justify-end">
     <div v-if="$auth.loading" class="d-flex">
       <div>Проверяем авторизацию</div>
       <v-progress-circular></v-progress-circular>
