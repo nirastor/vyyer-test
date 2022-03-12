@@ -1,42 +1,28 @@
 <template>
-  <div>
-    <div>isAuthenticated: {{ isAuth }}</div>
-    <div v-if="isAuth">
-      <div>Nickname: {{ user.nickname }}</div>
-      <!-- <div>Token: {{ $store.state.token }}</div> -->
-      <button @click="logout">Log Out</button>
+  <div class="d-flex pa-4">
+    <div v-if="$auth.loading" class="d-flex">
+      <div>Проверяем авторизацию</div>
+      <v-progress-circular></v-progress-circular>
     </div>
+
     <div v-else>
-      <div>Authorization required</div>
-      <button @click="login">Log In</button>
+      <div v-if="$auth.isAuthenticated" class="d-flex">
+        <div class="mr-4">Авторизован!</div>
+        <div class="mr-4">Nickname: {{ $auth.user.nickname }}</div>
+        <v-btn small text plain @click="logout">Log Out</v-btn>
+      </div>
+
+      <div v-else class="d-flex">
+        <div class="mr-4">Надо авторизоваться!</div>
+        <v-btn small text @click="login">Log In</v-btn>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  data() {
-    return {
-      user: this.$auth.user,
-      isAuth: this.$auth.isAuthenticated,
-    };
-  },
-  async created() {
-    // Костыль т.к. объект auth появляется не сразу и пока не разобрался можно ли его получить асинхронно
-    await this.delay(2000);
-    this.isAuth = this.$auth.isAuthenticated;
-    this.user = this.$auth.user;
-    const token = await this.$auth.getTokenSilently();
-    this.$store.commit("setToken", token);
-  },
   methods: {
-    delay(delay) {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(1);
-        }, delay);
-      });
-    },
     login() {
       this.$auth.loginWithRedirect();
     },
